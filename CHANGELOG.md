@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.18.1](https://github.com/roffelund/ts-to-zod/compare/v3.18.0...v3.18.1) (2025-05-30)
+
+
+### Bug Fixes
+
+* add tests for handling keyof with union types in validation ([790619d](https://github.com/roffelund/ts-to-zod/commit/790619d8a391de888fdb24e1c8296631db8d89c7))
+
 ## [3.18.0](https://github.com/roffelund/ts-to-zod/compare/v3.17.0...v3.18.0) (2025-05-22)
 
 
