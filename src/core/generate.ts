@@ -1,12 +1,7 @@
 import { camel } from "case";
 import { getJsDoc } from "tsutils";
 import ts from "typescript";
-import {
-  InputOutputMapping,
-  JSDocTagFilter,
-  NameFilter,
-  CustomJSDocFormatTypes,
-} from "../config";
+import { InputOutputMapping } from "../config";
 import { getSimplifiedJsDocTags } from "../utils/getSimplifiedJsDocTags";
 import { resolveModules } from "../utils/resolveModules";
 import {
@@ -23,6 +18,7 @@ import {
   getSingleImportIdentierForNode,
 } from "../utils/importHandling";
 
+import { GenerateProps } from "./generate/generate.types";
 import { generateIntegrationTests } from "./generateIntegrationTests";
 import { generateZodInferredType } from "./generateZodInferredType";
 import {
@@ -33,56 +29,6 @@ import { transformRecursiveSchema } from "./transformRecursiveSchema";
 import { areImportPathsEqualIgnoringExtension } from "../utils/getImportPath";
 
 const DEFAULT_GET_SCHEMA = (id: string) => camel(id) + "Schema";
-
-export interface GenerateProps {
-  /**
-   * Content of the typescript source file.
-   */
-  sourceText: string;
-
-  /**
-   * Filter on type/interface name.
-   */
-  nameFilter?: NameFilter;
-
-  /**
-   * Filter on JSDocTag.
-   */
-  jsDocTagFilter?: JSDocTagFilter;
-
-  /**
-   * Schema name generator.
-   */
-  getSchemaName?: (identifier: string) => string;
-
-  /**
-   * Keep parameters comments.
-   * @default false
-   */
-  keepComments?: boolean;
-
-  /**
-   * Skip the creation of zod validators from JSDoc annotations
-   *
-   * @default false
-   */
-  skipParseJSDoc?: boolean;
-
-  /**
-   * Path of z.infer<> types file.
-   */
-  inferredTypes?: string;
-  /**
-   * Custom JSDoc format types.
-   */
-  customJSDocFormatTypes?: CustomJSDocFormatTypes;
-
-  /**
-   * Map of input/output from config that can
-   * be used to automatically handle imports
-   */
-  inputOutputMappings?: InputOutputMapping[];
-}
 
 /**
  * Generate zod schemas and integration tests from a typescript file.
@@ -171,6 +117,7 @@ export function generate({
   };
 
   ts.forEachChild(sourceFile, typeNameMapBuilder);
+
   const visitor = (node: ts.Node) => {
     if (
       ts.isInterfaceDeclaration(node) ||
