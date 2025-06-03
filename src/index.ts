@@ -1,4 +1,5 @@
-export { generate, GenerateProps } from "./core/generate";
+export { generate } from "./core/generate";
+export type { GenerateProps } from "./core/generate/generate.types";
 
 export {
   generateZodInferredType,
