@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.19.0](https://github.com/roffelund/ts-to-zod/compare/v3.18.0...v3.19.0) (2025-06-03)
+
+
+### Features
+
+* Add --generateNested experimental ([957244c](https://github.com/roffelund/ts-to-zod/commit/957244c969855b195e9bbae7cd088310ecb1d719))
+* Add TsToZod CLI for generating Zod schemas from TypeScript files ([15d09e1](https://github.com/roffelund/ts-to-zod/commit/15d09e102faf34a6723a480345e16d6f06384a1b))
+
+
+### Bug Fixes
+
+* add tests for handling keyof with union types in validation ([790619d](https://github.com/roffelund/ts-to-zod/commit/790619d8a391de888fdb24e1c8296631db8d89c7))
+
 ## [3.18.0](https://github.com/roffelund/ts-to-zod/compare/v3.17.0...v3.18.0) (2025-05-22)
 
 
