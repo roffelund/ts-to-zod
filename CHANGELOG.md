@@ -1,5 +1,15 @@
 # Changelog
 
+## [3.20.1](https://github.com/roffelund/ts-to-zod/compare/v3.20.0...v3.20.1) (2025-06-04)
+
+
+### Bug Fixes
+
+* Break out logic into functions ([19fb53a](https://github.com/roffelund/ts-to-zod/commit/19fb53a7495f9e13ca976ed56ea379ee0a72c818))
+* Break out logic into functions and fix literal expectations for bool and number ([c389733](https://github.com/roffelund/ts-to-zod/commit/c389733cbc3b7b9aafb058b850e04779f024adb4))
+* refactor handleTypeOfKeyOfPattern to improve readability and maintainability ([213dc5b](https://github.com/roffelund/ts-to-zod/commit/213dc5bf771b4a1171032d277b2cf77f443ba5d2))
+* update expected snapshots for union schemas to use string literals ([7b11fb2](https://github.com/roffelund/ts-to-zod/commit/7b11fb250743ea857fe39003289092af9db8323c))
+
 ## [3.20.0](https://github.com/roffelund/ts-to-zod/compare/v3.19.0...v3.20.0) (2025-06-04)
 
 
