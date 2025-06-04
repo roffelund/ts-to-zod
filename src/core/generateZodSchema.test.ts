@@ -1865,7 +1865,7 @@ describe("generateZodSchema", () => {
       export type NumericStatusUnion = (typeof NumericStatus)[keyof typeof NumericStatus];
       `;
 
-    const expectedSnapshot = `"export const numericStatusUnionSchema = z.union([z.literal(1), z.literal(2)]);"`;
+    const expectedSnapshot = `"export const numericStatusUnionSchema = z.union([z.literal("1"), z.literal("2")]);"`;
 
     expect(generate(source)).toMatchInlineSnapshot(expectedSnapshot);
   });
@@ -1880,7 +1880,7 @@ describe("generateZodSchema", () => {
       export type MixedConstUnion = (typeof MixedConst)[keyof typeof MixedConst];
       `;
 
-    const expectedSnapshot = `"export const mixedConstUnionSchema = z.union([z.literal("string"), z.literal(42), z.literal(true)]);"`;
+    const expectedSnapshot = `"export const mixedConstUnionSchema = z.union([z.literal("string"), z.literal("42"), z.literal("true")]);"`;
 
     expect(generate(source)).toMatchInlineSnapshot(expectedSnapshot);
   });
