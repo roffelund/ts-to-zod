@@ -30,6 +30,7 @@ export interface GenerateZodSchemaProps {
    * @default "z"
    */
   zodImportValue?: string;
+  f;
 
   /**
    * Source file
@@ -895,32 +896,67 @@ function buildZodPrimitiveInternal({
         const objectLiteral = declaration.initializer.expression;
         const literalZodSchemas = objectLiteral.properties
           .map((prop) => {
+            let literalNodeForZod: ts.LiteralTypeNode | undefined;
+            let valueToBuildSchemaFrom: ts.Expression | undefined;
+
             if (ts.isPropertyAssignment(prop) && prop.initializer) {
-              let literalNodeForZod: ts.LiteralTypeNode | undefined;
+              valueToBuildSchemaFrom = prop.initializer;
+            } else if (ts.isShorthandPropertyAssignment(prop)) {
+              const shorthandConstName = prop.name.text;
+              const shorthandVarStatement = findNode(
+                sourceFile,
+                (n): n is ts.VariableStatement =>
+                  ts.isVariableStatement(n) &&
+                  n.declarationList.declarations.some(
+                    (d) =>
+                      ts.isIdentifier(d.name) &&
+                      d.name.text === shorthandConstName
+                  )
+              );
+              if (shorthandVarStatement) {
+                const shorthandDecl =
+                  shorthandVarStatement.declarationList.declarations.find(
+                    (d) =>
+                      ts.isIdentifier(d.name) &&
+                      d.name.text === shorthandConstName
+                  ) as ts.VariableDeclaration; // Type assertion
+                if (shorthandDecl && shorthandDecl.initializer) {
+                  valueToBuildSchemaFrom = shorthandDecl.initializer;
+                }
+              }
+            }
+            if (valueToBuildSchemaFrom) {
               if (
-                ts.isStringLiteral(prop.initializer) ||
-                ts.isNumericLiteral(prop.initializer)
+                ts.isStringLiteral(valueToBuildSchemaFrom) ||
+                ts.isNumericLiteral(valueToBuildSchemaFrom)
               ) {
-                literalNodeForZod = f.createLiteralTypeNode(prop.initializer);
-              } else if (prop.initializer.kind === ts.SyntaxKind.TrueKeyword) {
+                literalNodeForZod = f.createLiteralTypeNode(
+                  valueToBuildSchemaFrom
+                );
+              } else if (
+                valueToBuildSchemaFrom.kind === ts.SyntaxKind.TrueKeyword
+              ) {
                 literalNodeForZod = f.createLiteralTypeNode(f.createTrue());
-              } else if (prop.initializer.kind === ts.SyntaxKind.FalseKeyword) {
+              } else if (
+                valueToBuildSchemaFrom.kind === ts.SyntaxKind.FalseKeyword
+              ) {
                 literalNodeForZod = f.createLiteralTypeNode(f.createFalse());
               }
-              if (literalNodeForZod) {
-                return buildZodPrimitiveInternal({
-                  z,
-                  typeNode: literalNodeForZod,
-                  isOptional: false,
-                  isNullable: false,
-                  jsDocTags: {},
-                  customJSDocFormatTypes,
-                  sourceFile,
-                  dependencies,
-                  getDependencyName,
-                  skipParseJSDoc,
-                });
-              }
+            }
+
+            if (literalNodeForZod) {
+              return buildZodPrimitiveInternal({
+                z,
+                typeNode: literalNodeForZod,
+                isOptional: false,
+                isNullable: false,
+                jsDocTags: {},
+                customJSDocFormatTypes,
+                sourceFile,
+                dependencies,
+                getDependencyName,
+                skipParseJSDoc,
+              });
             }
             console.warn(
               ` »   Warning: Unsupported initializer type in (typeof ${constName}) for property ${
