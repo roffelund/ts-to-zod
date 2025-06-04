@@ -30,7 +30,6 @@ export interface GenerateZodSchemaProps {
    * @default "z"
    */
   zodImportValue?: string;
-  f;
 
   /**
    * Source file
