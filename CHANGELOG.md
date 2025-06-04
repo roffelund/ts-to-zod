@@ -1,5 +1,18 @@
 # Changelog
 
+## [3.20.0](https://github.com/roffelund/ts-to-zod/compare/v3.19.0...v3.20.0) (2025-06-04)
+
+
+### Features
+
+* Enhance schema generation for shorthand property assignments an… ([baa478e](https://github.com/roffelund/ts-to-zod/commit/baa478ea5f12424ef1a5c3169ec8f911af6ce9fe))
+* Enhance schema generation for shorthand property assignments and const types ([cf4ea38](https://github.com/roffelund/ts-to-zod/commit/cf4ea3849a72864964eb2984f44559df861a1363))
+
+
+### Bug Fixes
+
+* remove unused parameter from GenerateZodSchemaProps interface ([a00c1f5](https://github.com/roffelund/ts-to-zod/commit/a00c1f5236ed7e83403582b45e9e1579828627db))
+
 ## [3.19.0](https://github.com/roffelund/ts-to-zod/compare/v3.18.0...v3.19.0) (2025-06-03)
 
 
