@@ -499,111 +499,109 @@ function handleTypeOfKeyOfPattern({
       ts.isObjectLiteralExpression(declaration.initializer.expression)
     ) {
       const objectLiteral = declaration.initializer.expression;
-      const literalZodSchemas = objectLiteral.properties
-        .map((prop) => {
-          let resolvedLiteralValue: string | number | boolean | undefined;
-          let valueToBuildSchemaFrom: ts.Expression | undefined; // The expression node holding the value (e.g., 'A', 123, OBJECT_A.A, true, null)
+      const literalZodSchemas = objectLiteral.properties.map((prop) => {
+        let resolvedLiteralValue: string | number | boolean | undefined;
+        let valueToBuildSchemaFrom: ts.Expression | undefined;
 
-          // Determine the expression node that holds the literal value
-          if (ts.isPropertyAssignment(prop) && prop.initializer) {
-            valueToBuildSchemaFrom = prop.initializer;
-          } else if (ts.isShorthandPropertyAssignment(prop)) {
-            // Handle shorthand properties (e.g., { foo })
-            const shorthandConstName = prop.name.text;
-            const shorthandVarStatement = findNode(
-              sourceFile,
-              (n): n is ts.VariableStatement =>
-                ts.isVariableStatement(n) &&
-                n.declarationList.declarations.some(
-                  (d) =>
-                    ts.isIdentifier(d.name) &&
-                    d.name.text === shorthandConstName
-                )
-            );
-            if (shorthandVarStatement) {
-              const shorthandDecl =
-                shorthandVarStatement.declarationList.declarations.find(
-                  (d) =>
-                    ts.isIdentifier(d.name) &&
-                    d.name.text === shorthandConstName
-                ) as ts.VariableDeclaration;
-              if (shorthandDecl && shorthandDecl.initializer) {
-                valueToBuildSchemaFrom = shorthandDecl.initializer;
-              }
-            }
-          } else {
-            // Handle other property types if necessary (e.g., MethodDeclaration, AccessorDeclaration)
-            // For now, we'll skip them and warn below
-            return null;
-          }
-
-          // Resolve the literal value from the expression node
-          if (valueToBuildSchemaFrom) {
-            if (ts.isPropertyAccessExpression(valueToBuildSchemaFrom)) {
-              // Prioritize resolving property access expressions
-              resolvedLiteralValue = resolvePropertyAccessToLiteral(
-                valueToBuildSchemaFrom,
-                sourceFile
-              );
-            } else {
-              // Use extractLiteralValue for direct literals (string, number, boolean, etc.)
-              resolvedLiteralValue = extractLiteralValue(
-                valueToBuildSchemaFrom
-              );
+        // Determine the expression node that holds the literal value
+        if (ts.isPropertyAssignment(prop) && prop.initializer) {
+          valueToBuildSchemaFrom = prop.initializer;
+        } else if (ts.isShorthandPropertyAssignment(prop)) {
+          // Handle shorthand properties (e.g., { foo })
+          const shorthandConstName = prop.name.text;
+          const shorthandVarStatement = findNode(
+            sourceFile,
+            (n): n is ts.VariableStatement =>
+              ts.isVariableStatement(n) &&
+              n.declarationList.declarations.some(
+                (d) =>
+                  ts.isIdentifier(d.name) && d.name.text === shorthandConstName
+              )
+          );
+          if (shorthandVarStatement) {
+            const shorthandDecl =
+              shorthandVarStatement.declarationList.declarations.find(
+                (d) =>
+                  ts.isIdentifier(d.name) && d.name.text === shorthandConstName
+              ) as ts.VariableDeclaration;
+            if (shorthandDecl && shorthandDecl.initializer) {
+              valueToBuildSchemaFrom = shorthandDecl.initializer;
             }
           }
-
-          // Build the Zod schema for the resolved literal value
-          if (resolvedLiteralValue !== undefined) {
-            let literalNodeForZod:
-              | ts.LiteralExpression
-              | ts.BooleanLiteral
-              | ts.NullLiteral
-              | ts.BigIntLiteral
-              | ts.PrefixUnaryExpression
-              | undefined;
-            if (typeof resolvedLiteralValue === "string") {
-              literalNodeForZod = f.createStringLiteral(resolvedLiteralValue);
-            } else if (typeof resolvedLiteralValue === "number") {
-              // createNumericLiteral takes the string representation
-              literalNodeForZod = f.createNumericLiteral(
-                String(resolvedLiteralValue)
-              );
-            } else if (typeof resolvedLiteralValue === "boolean") {
-              literalNodeForZod = resolvedLiteralValue
-                ? f.createTrue()
-                : f.createFalse();
-            } else if (resolvedLiteralValue === null) {
-              literalNodeForZod = f.createNull();
-            }
-
-            if (literalNodeForZod) {
-              return buildZodPrimitiveInternal({
-                // Call with a newly created literal type node
-                z,
-                typeNode: f.createLiteralTypeNode(literalNodeForZod),
-                isOptional: false,
-                isNullable: false,
-                jsDocTags: {},
-                customJSDocFormatTypes,
-                sourceFile,
-                dependencies,
-                getDependencyName,
-                skipParseJSDoc,
-              });
-            }
-          }
-
-          // If we couldn't resolve the value, warn and fallback to z.any()
+        } else {
+          // Handle other property types if necessary (e.g., MethodDeclaration, AccessorDeclaration)
+          // For now, we'll skip them and warn below
           console.warn(
-            ` »   Warning: Could not resolve literal value for property '${
+            ` »   Warning: Unsupported property type in (typeof ${constName}) for property ${
               prop.name?.getText(sourceFile) || "unknown"
-            }' in (typeof ${constName}). Falling back to z.any() for this item.`
+            }. Falling back to z.any() for this item.`
           );
           return buildZodSchema(z, "any");
-        })
-        .filter((v) => v != null); // Filter out nulls from properties we couldn't process
+        }
 
+        // Resolve the literal value from the expression node
+        if (valueToBuildSchemaFrom) {
+          if (ts.isPropertyAccessExpression(valueToBuildSchemaFrom)) {
+            // Prioritize resolving property access expressions
+            resolvedLiteralValue = resolvePropertyAccessToLiteral(
+              valueToBuildSchemaFrom,
+              sourceFile
+            );
+          } else {
+            // Use extractLiteralValue for direct literals (string, number, boolean, etc.)
+            resolvedLiteralValue = extractLiteralValue(valueToBuildSchemaFrom);
+          }
+        }
+
+        // Build the Zod schema for the resolved literal value
+        if (resolvedLiteralValue !== undefined) {
+          let literalNodeForZod:
+            | ts.LiteralExpression
+            | ts.BooleanLiteral
+            | ts.NullLiteral
+            | ts.BigIntLiteral
+            | ts.PrefixUnaryExpression
+            | undefined;
+          if (typeof resolvedLiteralValue === "string") {
+            literalNodeForZod = f.createStringLiteral(resolvedLiteralValue);
+          } else if (typeof resolvedLiteralValue === "number") {
+            // createNumericLiteral takes the string representation
+            literalNodeForZod = f.createNumericLiteral(
+              String(resolvedLiteralValue)
+            );
+          } else if (typeof resolvedLiteralValue === "boolean") {
+            literalNodeForZod = resolvedLiteralValue
+              ? f.createTrue()
+              : f.createFalse();
+          } else if (resolvedLiteralValue === null) {
+            literalNodeForZod = f.createNull();
+          }
+
+          if (literalNodeForZod) {
+            return buildZodPrimitiveInternal({
+              // Call with a newly created literal type node
+              z,
+              typeNode: f.createLiteralTypeNode(literalNodeForZod),
+              isOptional: false,
+              isNullable: false,
+              jsDocTags: {},
+              customJSDocFormatTypes,
+              sourceFile,
+              dependencies,
+              getDependencyName,
+              skipParseJSDoc,
+            });
+          }
+        }
+
+        // If we couldn't resolve the value, warn and fallback to z.any()
+        console.warn(
+          ` »   Warning: Could not resolve literal value for property '${
+            prop.name?.getText(sourceFile) || "unknown"
+          }' in (typeof ${constName}). Falling back to z.any() for this item.`
+        );
+        return buildZodSchema(z, "any");
+      });
       // Return the resulting schema (literal if one, union if many) with collected properties
       if (literalZodSchemas.length === 1)
         return withZodProperties(literalZodSchemas[0], zodProperties);
