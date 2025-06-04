@@ -1884,6 +1884,24 @@ describe("generateZodSchema", () => {
 
     expect(generate(source)).toMatchInlineSnapshot(expectedSnapshot);
   });
+
+  it('should handle shorthand property assignment with "as const"', () => {
+    const source = `
+      const foo = "foo";
+      const bar = "bar";
+
+      export const MyConst = {
+        foo,
+        bar,
+      } as const;
+
+      export type MyConstUnion = (typeof MyConst)[keyof typeof MyConst];
+    `;
+
+    const expectedSnapshot = `"export const myConstUnionSchema = z.union([z.literal("foo"), z.literal("bar")]);"`;
+
+    expect(generate(source)).toMatchInlineSnapshot(expectedSnapshot);
+  });
 });
 
 /**
